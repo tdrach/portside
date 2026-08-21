@@ -32,11 +32,11 @@ One list. Every server Portside has ever seen, each row start/stop-able.
 ## Install
 
 ```sh
-brew install --cask tdrach/tap/portside
+brew install --cask subtractdotdesign/tap/portside
 ```
 
 Or download the latest `.dmg` from
-[Releases](https://github.com/tdrach/portside/releases), drag Portside to
+[Releases](https://github.com/subtractdotdesign/portside/releases), drag Portside to
 Applications, launch it. Signed with a Developer ID and notarized by Apple, so it opens
 without Gatekeeper warnings — and the notarization ticket is stapled to
 both the app and the disk image, so it validates offline.
