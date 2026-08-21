@@ -25,6 +25,9 @@ One list. Every server Portside has ever seen, each row start/stop-able.
 - **Logs**: every managed server's output goes to
   `~/Library/Application Support/Portside/logs/<name>.log` (row menu → View Log).
 - Menu bar icon shows a count of live servers.
+- **Memory** per row: the resident footprint of the server's whole process
+  tree, amber past 2 GB and red past 6 GB — long-lived `next dev` servers
+  leak, and the row tells you when a restart is due.
 
 ## Install
 

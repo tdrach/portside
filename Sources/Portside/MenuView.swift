@@ -171,6 +171,9 @@ private struct ServerRow: View {
                     .truncationMode(.middle)
             }
             Spacer(minLength: 8)
+            if status.isUp, let bytes = model.memory(for: server) {
+                MemoryBadge(bytes: bytes)
+            }
             overflowMenu
                 .opacity(hovered ? 1 : 0)
         }
@@ -291,6 +294,9 @@ private struct ProjectRow: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 8)
+            if projectMemory > 0 {
+                MemoryBadge(bytes: projectMemory)
+            }
             overflowMenu
                 .opacity(hovered ? 1 : 0)
         }
@@ -320,6 +326,13 @@ private struct ProjectRow: View {
         case .partial: return .starting
         case .empty, .allStopped: return orchestrating ? .starting : .stopped
         }
+    }
+
+    /// Combined footprint of every running member's process tree.
+    private var projectMemory: UInt64 {
+        model.members(of: project)
+            .compactMap { model.memory(for: $0) }
+            .reduce(0, +)
     }
 
     private func caption(_ aggregate: ProjectAggregate) -> String {
@@ -394,6 +407,9 @@ private struct GhostRow: View {
                     .truncationMode(.middle)
             }
             Spacer(minLength: 8)
+            if let bytes = model.memoryByGroup[server.pgid] {
+                MemoryBadge(bytes: bytes)
+            }
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 5)
@@ -505,6 +521,25 @@ private struct AddServerRow: View {
         .padding(.horizontal, 6)
         .onHover { hovered = $0 }
         .animation(.easeOut(duration: 0.12), value: hovered)
+    }
+}
+
+/// Quiet trailing memory readout: invisible below notice, amber past
+/// 2 GB, red past 6 GB — a 14 GB dev server should be impossible to miss.
+private struct MemoryBadge: View {
+    let bytes: UInt64
+
+    var body: some View {
+        Text(MemoryDisplay.format(bytes))
+            .font(.system(size: 11, design: .monospaced))
+            .foregroundStyle(color)
+            .help("Memory used by this server's process tree")
+    }
+
+    private var color: AnyShapeStyle {
+        if bytes >= MemoryDisplay.alarmBytes { return AnyShapeStyle(.red) }
+        if bytes >= MemoryDisplay.warnBytes { return AnyShapeStyle(.orange) }
+        return AnyShapeStyle(.tertiary)
     }
 }
 

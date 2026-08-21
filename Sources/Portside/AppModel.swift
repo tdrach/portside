@@ -10,6 +10,7 @@ final class AppModel: ObservableObject {
     @Published var allServers: [DetectedServer] = []
     @Published var runs: [UUID: ManagedRun] = [:]
     @Published var lastExit: [UUID: Int32] = [:]
+    @Published var memoryByGroup: [pid_t: UInt64] = [:]
     @Published var editorDraft: ServerDraft?
     @Published var lastError: String?
 
@@ -107,6 +108,17 @@ final class AppModel: ObservableObject {
 
     /// The port to display and open: the actual port of a run we started,
     /// else the configured port, else an owned listener's port.
+    /// Resident memory of the server's process tree, when it's up.
+    func memory(for server: Server) -> UInt64? {
+        if let run = runs[server.id], let bytes = memoryByGroup[run.pid] {
+            return bytes
+        }
+        if let pgid = claimedListeners(for: server).first?.pgid {
+            return memoryByGroup[pgid]
+        }
+        return nil
+    }
+
     func livePort(for server: Server) -> Int? {
         let claimed = claimedListeners(for: server)
         if let run = runs[server.id],
@@ -170,8 +182,16 @@ final class AppModel: ObservableObject {
         let managedPgids = Set(runs.values.map(\.pid))
         Task.detached(priority: .utility) {
             let detected = scanner.scan(exemptPorts: exemptPorts, managedPgids: managedPgids)
+            // Piggyback memory sampling on the scan, off the main thread:
+            // one group walk per visible server tree, every scan cycle.
+            var memory: [pid_t: UInt64] = [:]
+            for pgid in Set((detected ?? []).map(\.pgid)).union(managedPgids) {
+                memory[pgid] = ProcInfo.groupResidentBytes(pgid: pgid)
+            }
+            let sampled = memory
             await MainActor.run {
                 if let detected {
+                    self.memoryByGroup = sampled
                     self.apply(detected)
                 } else {
                     // A previous (wedged) scan still holds the scanner — skip.

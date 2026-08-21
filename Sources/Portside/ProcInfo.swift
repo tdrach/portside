@@ -76,6 +76,34 @@ enum ProcInfo {
     }
 
     /// Process group id; 0 if unavailable.
+    /// Resident memory of one process, in bytes. 0 when the pid is gone
+    /// or unreadable (we only ever inspect same-uid processes).
+    static func residentBytes(of pid: pid_t) -> UInt64 {
+        var info = proc_taskinfo()
+        let size = Int32(MemoryLayout<proc_taskinfo>.size)
+        let written = proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &info, size)
+        guard written == size else { return 0 }
+        return info.pti_resident_size
+    }
+
+    /// Resident memory of an entire process group, in bytes — a dev server
+    /// is a tree (npm → node → workers), and the group is what a row
+    /// actually costs. Falls back to the leader alone if the group can't
+    /// be listed.
+    static func groupResidentBytes(pgid: pid_t) -> UInt64 {
+        let capacity = Int32(4096)
+        var pids = [pid_t](repeating: 0, count: Int(capacity))
+        let written = proc_listpids(UInt32(PROC_PGRP_ONLY), UInt32(pgid), &pids,
+                                    capacity * Int32(MemoryLayout<pid_t>.size))
+        guard written > 0 else { return residentBytes(of: pgid) }
+        let count = Int(written) / MemoryLayout<pid_t>.size
+        var total: UInt64 = 0
+        for pid in pids.prefix(count) where pid > 0 {
+            total += residentBytes(of: pid)
+        }
+        return total
+    }
+
     static func processGroup(of pid: pid_t) -> pid_t {
         let pgid = getpgid(pid)
         return pgid > 0 ? pgid : 0

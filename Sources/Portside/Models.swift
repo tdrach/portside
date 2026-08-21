@@ -119,6 +119,20 @@ struct ServerDraft: Identifiable, Equatable {
     }
 }
 
+/// Compact memory readout for server rows: "512 MB", "1.2 GB", "14 GB".
+enum MemoryDisplay {
+    static let warnBytes: UInt64 = 2 << 30   // 2 GB — worth a glance
+    static let alarmBytes: UInt64 = 6 << 30  // 6 GB — restart me
+
+    static func format(_ bytes: UInt64) -> String {
+        let gb = Double(bytes) / 1_073_741_824
+        if gb >= 10 { return "\(Int(gb.rounded())) GB" }
+        if gb >= 1 { return String(format: "%.1f GB", gb) }
+        let mb = Double(bytes) / 1_048_576
+        return "\(Int(mb.rounded())) MB"
+    }
+}
+
 extension String {
     var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) }
 

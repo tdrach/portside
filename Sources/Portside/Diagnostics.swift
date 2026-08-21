@@ -21,6 +21,7 @@ enum Diagnostics {
             "Servers \(model.servers.count) saved · \(model.ghostServers.count) ephemeral · \(model.liveCount) live",
             "Listening ports \(model.allServers.map { String($0.port) }.sorted().joined(separator: ", "))",
             "Env capture \(model.environmentCaptureSummary)",
+            "Memory \(memorySummary(model: model))",
             "Launch at login \(SMAppService.mainApp.status == .enabled ? "on" : "off")",
         ].joined(separator: "\n")
     }
@@ -30,6 +31,16 @@ enum Diagnostics {
         if MenuGlassBackground.classicChrome { return "classic (kill switch on)" }
         return MenuGlassBackground.usesChromeCorrections
             ? "glass" : "plain material (pre-macOS 26)"
+    }
+
+    @MainActor
+    static func memorySummary(model: AppModel) -> String {
+        let sampled = model.memoryByGroup.values.filter { $0 > 0 }
+        guard !sampled.isEmpty else { return "n/a" }
+        let total = sampled.reduce(0, +)
+        let peak = sampled.max() ?? 0
+        return "\(MemoryDisplay.format(total)) across \(sampled.count) trees"
+            + " · largest \(MemoryDisplay.format(peak))"
     }
 
     static var liquidGlassAvailable: Bool {

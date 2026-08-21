@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — 2026-08-21
+- Memory readout on every running row: the resident footprint of the
+  server's whole process tree (npm → node → workers), sampled on the
+  existing scan cycle. Quiet gray normally, amber past 2 GB, red past
+  6 GB — a leaky dev server is now impossible to miss. Project rows
+  show the summed footprint of their members.
+- Diagnostics now include total and peak memory across server trees.
+- Report an issue / Check for updates in the ⋯ menu.
+
 ## 0.2.0 — 2026-08-20
 - Signed with Developer ID and notarized by Apple — installs cleanly with no
   Gatekeeper warnings; tickets stapled to both the app and the disk image so
