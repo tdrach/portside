@@ -1,0 +1,9 @@
+.build/
+dist/
+.DS_Store
+*.log
+Resources/AppIcon.iconset/
+
+# Local planning — launch strategy, not shipped
+ROADMAP.md
+TODO.md
