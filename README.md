@@ -31,13 +31,21 @@ One list. Every server Portside has ever seen, each row start/stop-able.
 
 ## Install
 
-Download the latest `.dmg` from Releases, drag Portside to Applications,
-launch it. Signed with a Developer ID and notarized by Apple, so it opens
+```sh
+brew install --cask tdrach/tap/portside
+```
+
+Or download the latest `.dmg` from
+[Releases](https://github.com/tdrach/portside/releases), drag Portside to
+Applications, launch it. Signed with a Developer ID and notarized by Apple, so it opens
 without Gatekeeper warnings — and the notarization ticket is stapled to
 both the app and the disk image, so it validates offline.
 
 Move it to /Applications rather than running it from the disk image:
 Gatekeeper's app translocation can otherwise break launch-at-login.
+
+**Updating:** `brew upgrade --cask portside`, or use ⋯ → Check for
+updates in the app, which opens the latest release.
 
 **Upgrading from a build you compiled yourself before 0.2.0?** Those were
 ad-hoc signed, and macOS keys some state to code-signing identity. Your
